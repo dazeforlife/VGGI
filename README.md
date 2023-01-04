@@ -1,4 +1,4 @@
-# VGGI Lab1
+# VGGI Lab2
 Kedrun Volodymyr
 
 Figure - Astroidal helicoid
