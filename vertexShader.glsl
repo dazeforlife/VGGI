@@ -1,8 +1,8 @@
 const vertexShaderSource = `
-#define GLSLIFY 1
-
 attribute vec3 vertex;
 attribute vec3 normal;
+attribute vec2 textureCoords;
+
 uniform mat4 normalMatrix;
 uniform mat4 ModelViewProjectionMatrix;
 
@@ -13,7 +13,32 @@ uniform vec3 specularColor;
 
 uniform vec3 lightPosition;
 
+uniform float textureAngle;
+uniform vec2 texturePoint;
+
 varying vec4 color;
+varying vec2 vTextureCoords;
+
+mat4 getRotateMatix(float angleRad) {
+  float c = cos(angleRad);
+  float s = sin(angleRad);
+
+  return mat4(
+    vec4(c, s, 0.0, 0.0),
+    vec4(-s, c, 0.0, 0.0),
+    vec4(0.0, 0.0, 1.0, 0.0),
+    vec4(0.0, 0.0, 0.0, 1.0)
+  );
+}
+
+mat4 getTranslateMatrix(vec2 point) {
+  return mat4(
+    vec4(1.0, 0.0, 0.0, point.x),
+    vec4(0.0, 1.0, 0.0, point.y),
+    vec4(0.0, 0.0, 1.0, 0.0),
+    vec4(0.0, 0.0, 0.0, 1.0)
+  );
+}
 
 void main() {
     vec4 vertexPosition4 = ModelViewProjectionMatrix * vec4(vertex, 1.0);
@@ -35,5 +60,16 @@ void main() {
     vec3 diffuse = nDotLight * diffuseColor;
     vec3 ambient = ambientColor;
     vec3 specular = specularLight * specularColor;
+
+    mat4 rotatedMatrix = getRotateMatix(textureAngle);
+    mat4 translatedMatrix = getTranslateMatrix(-texturePoint);
+    mat4 translatedBackMatrix = getTranslateMatrix(texturePoint);
+
+    vec4 vTranslatedMatrix = translatedMatrix * vec4(textureCoords, 0, 0);
+    vec4 vRotatedMatrix = vTranslatedMatrix * rotatedMatrix;
+    vec4 vTranslatedBackMatrix = vRotatedMatrix * translatedBackMatrix;
+
+    vTextureCoords = vec2(vTranslatedBackMatrix);
+
     color = vec4(diffuse + ambient + specular, 1.0);
 }`;
